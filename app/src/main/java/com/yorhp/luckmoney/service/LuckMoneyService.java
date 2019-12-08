@@ -103,15 +103,15 @@ public class LuckMoneyService extends BaseAccessbilityService {
             return;
         }
 
-        //当前类名
-        String className = event.getClassName().toString();
 
-        AccessibilityNodeInfo nodeInfo;
+
 
         //通知栏消息，判断是不是红包消息
         if (event.getParcelableData() != null && event.getParcelableData() instanceof Notification) {
             Notification notification = (Notification) event.getParcelableData();
+            //获取通知消息详情
             String content = notification.tickerText.toString();
+            //解析消息
             String[] msg = content.split(":");
             String text = msg[1].trim();
             if (text.contains(HONG_BAO_TXT)) {
@@ -125,13 +125,17 @@ public class LuckMoneyService extends BaseAccessbilityService {
             }
         }
 
-        //在聊天详情页
-        nodeInfo = findViewByID(DETAIL_CHAT_LIST_ID);
+        //获取聊天消息列表List控件
+        AccessibilityNodeInfo nodeInfo = findViewByID(DETAIL_CHAT_LIST_ID);
+        //这个消息列表不为空，那么肯定在聊天详情页
         if (nodeInfo != null) {
             //判断有没有未领取红包并进行点击
             clickItem(nodeInfo);
             return;
         }
+
+        //当前类名
+        String className = event.getClassName().toString();
 
         //当前为红包弹出窗（那个开的那个弹窗）
         if (className.equals(ACTIVITY_DIALOG_LUCKYMONEY)) {
@@ -142,7 +146,9 @@ public class LuckMoneyService extends BaseAccessbilityService {
 
         //红包领取后的详情页面，自动返回
         if (className.equals(LUCKY_MONEY_DETAIL)) {
+            //返回聊天界面
             performGlobalAction(GLOBAL_ACTION_BACK);
+            //如果不是专抢一个群
             if (!isSingle) {
                 SystemClock.sleep(50);
                 performGlobalAction(GLOBAL_ACTION_BACK);
@@ -176,6 +182,7 @@ public class LuckMoneyService extends BaseAccessbilityService {
         SystemClock.sleep(100);
         for (int i = 0; i < 20; i++) {
             SystemClock.sleep(10);
+            //计算了一下这个開字在屏幕中的位置，按照屏幕比例计算
             clickOnScreen(screenWidth / 2, screenHeight * POINT_Y_SCAL, 1, null);
         }
 
@@ -184,7 +191,7 @@ public class LuckMoneyService extends BaseAccessbilityService {
             performViewClick(target);
             return;
         } else {
-            //如果没有找到按钮，进行模拟点击
+            //如果没有找到按钮，再进行模拟点击
             for (int i = 0; i < 20; i++) {
                 SystemClock.sleep(10);
                 clickOnScreen(screenWidth / 2, screenHeight * POINT_Y_SCAL, 1, null);
@@ -199,9 +206,13 @@ public class LuckMoneyService extends BaseAccessbilityService {
      * @param nodeInfo
      */
     private void clickItem(AccessibilityNodeInfo nodeInfo) {
+        //遍历消息列表的每个消息
         for (int i = 0; i < nodeInfo.getChildCount(); i++) {
+            //获取到子控件
             AccessibilityNodeInfo nodeInfoChild = nodeInfo.getChild(i);
+            //获取红包控件
             AccessibilityNodeInfo target = findViewByID(nodeInfoChild, AUM_ID);
+            //获取头像的控件
             AccessibilityNodeInfo avatar = findViewByID(nodeInfoChild, AVATAR_ID);
             boolean selfLuckMoney = false;
             //获取头像的位置，判断红包是否是自己发的，自己发的不抢
@@ -212,8 +223,11 @@ public class LuckMoneyService extends BaseAccessbilityService {
                     selfLuckMoney = true;
                 }
             }
+            //如果不是自己发的红包，并且获取到的微信红包这个控件不为空
             if (target != null && !selfLuckMoney) {
+                //已领取这个控件为空，红包还没有被领取
                 if (findViewByID(nodeInfoChild, AUL_ID) == null) {
+                    //点击红包控件
                     performViewClick(target);
                     return;
                 }

@@ -20,12 +20,28 @@ import java.util.List;
 
 public abstract class BaseAccessbilityService extends AccessibilityService {
 
+    /**
+     * 模拟触摸事件
+     *
+     * @param x
+     * @param y
+     * @param duration
+     * @param callback
+     */
     protected void clickOnScreen(float x, float y, int duration, AccessibilityService.GestureResultCallback callback) {
         Path path = new Path();
         path.moveTo(x, y);
         gestureOnScreen(path, 0, duration, callback);
     }
 
+    /**
+     * 模拟触摸
+     *
+     * @param path
+     * @param startTime
+     * @param duration
+     * @param callback
+     */
     protected void gestureOnScreen(Path path, long startTime, long duration,
                                    AccessibilityService.GestureResultCallback callback) {
         GestureDescription.Builder builde = new GestureDescription.Builder();
