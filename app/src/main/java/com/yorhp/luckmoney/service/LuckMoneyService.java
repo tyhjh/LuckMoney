@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.graphics.Rect;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -19,6 +20,8 @@ import com.yorhp.luckmoney.util.ScreenUtil;
 
 public class LuckMoneyService extends BaseAccessbilityService {
 
+    public static final String TAG="LuckMoneyService";
+
     /**
      * 单独抢一个群
      */
@@ -27,6 +30,12 @@ public class LuckMoneyService extends BaseAccessbilityService {
      * 暂停抢红包
      */
     public static boolean isPause = false;
+
+    /**
+     * 当前界面是否在聊天消息里面
+     */
+    public static boolean isInChatList=false;
+
 
     /**
      * 微信包名
@@ -88,49 +97,22 @@ public class LuckMoneyService extends BaseAccessbilityService {
     int screenWidth = ScreenUtil.SCREEN_WIDTH;
     int screenHeight = ScreenUtil.SCREEN_HEIGHT;
 
+    private static long luckMoneyComingTime;
+
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
 
         //暂停
         if (isPause) {
+            isInChatList=false;
             return;
         }
 
         String packageName = event.getPackageName().toString();
         if (!packageName.contains(WX_PACKAGE_NAME)) {
             //不是微信就退出
-            return;
-        }
-
-
-
-
-        //通知栏消息，判断是不是红包消息
-        if (event.getParcelableData() != null && event.getParcelableData() instanceof Notification) {
-            Notification notification = (Notification) event.getParcelableData();
-            //获取通知消息详情
-            String content = notification.tickerText.toString();
-            //解析消息
-            String[] msg = content.split(":");
-            String text = msg[1].trim();
-            if (text.contains(HONG_BAO_TXT)) {
-                PendingIntent pendingIntent = notification.contentIntent;
-                try {
-                    //点击消息，进入聊天界面
-                    pendingIntent.send();
-                } catch (PendingIntent.CanceledException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        //获取聊天消息列表List控件
-        AccessibilityNodeInfo nodeInfo = findViewByID(DETAIL_CHAT_LIST_ID);
-        //这个消息列表不为空，那么肯定在聊天详情页
-        if (nodeInfo != null) {
-            //判断有没有未领取红包并进行点击
-            clickItem(nodeInfo);
+            isInChatList=false;
             return;
         }
 
@@ -141,11 +123,53 @@ public class LuckMoneyService extends BaseAccessbilityService {
         if (className.equals(ACTIVITY_DIALOG_LUCKYMONEY)) {
             //进行红包开点击
             clickOpen();
+            isInChatList=false;
             return;
         }
 
+
+        //获取聊天消息列表List控件
+        AccessibilityNodeInfo nodeInfo = findViewByID(DETAIL_CHAT_LIST_ID);
+        //这个消息列表不为空，那么肯定在聊天详情页
+        if (nodeInfo != null) {
+            luckMoneyComingTime=System.currentTimeMillis();
+            //判断有没有未领取红包并进行点击
+            clickItem(nodeInfo);
+            isInChatList=true;
+            return;
+        }
+
+
+        //通知栏消息，判断是不是红包消息
+        if (event.getParcelableData() != null && event.getParcelableData() instanceof Notification) {
+            Log.e(TAG,"接收到通知栏消息");
+            //如果当前界面是在消息列表内，并且单独抢这个群，则不必点击通知消息
+            if(!isInChatList||!isSingle){
+                luckMoneyComingTime=System.currentTimeMillis();
+                Notification notification = (Notification) event.getParcelableData();
+                //获取通知消息详情
+                String content = notification.tickerText.toString();
+                //解析消息
+                String[] msg = content.split(":");
+                String text = msg[1].trim();
+                if (text.contains(HONG_BAO_TXT)) {
+                    Log.e(TAG,"接收到通知栏红包消息");
+                    PendingIntent pendingIntent = notification.contentIntent;
+                    try {
+                        //点击消息，进入聊天界面
+                        pendingIntent.send();
+                    } catch (PendingIntent.CanceledException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return;
+        }
+
+
         //红包领取后的详情页面，自动返回
         if (className.equals(LUCKY_MONEY_DETAIL)) {
+            Log.e(TAG,"领取红包时间为："+(System.currentTimeMillis()-luckMoneyComingTime)+"ms");
             //返回聊天界面
             performGlobalAction(GLOBAL_ACTION_BACK);
             //如果不是专抢一个群
