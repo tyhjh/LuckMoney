@@ -124,7 +124,7 @@
                     android:layout_weight="3"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="等待红包弹窗时间(少部分机型受网速和性能影响，需要增加时间保证能点击开红包按钮，不会影响实际抢红包速度，其他机型配置此项无效)" />
+                    android:text="等待红包弹窗时间(少部分机型受网速和性能影响，需要增加时间保证能点击开红包按钮，不会影响实际抢红包速度，建议值200ms左右)" />
 
                 <TextView
                     android:textSize="18sp"
@@ -153,7 +153,7 @@
                     android:layout_weight="3"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="领取等待时间(少部分机型受网速和性能影响,需要增加时间保证流畅性，不会影响实际抢红包速度，其他机型配置此项无效)" />
+                    android:text="领取等待时间(少部分机型受网速和性能影响,需要增加时间保证流畅性，不会影响实际抢红包速度，建议值大于500ms)" />
 
                 <TextView
                     android:textSize="18sp"
