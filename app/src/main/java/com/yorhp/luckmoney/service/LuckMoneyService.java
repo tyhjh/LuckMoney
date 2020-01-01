@@ -104,12 +104,17 @@ public class LuckMoneyService extends BaseAccessbilityService {
     /**
      * 等待弹窗弹出时间
      */
-    public static long waitWindowTime=200;
+    public static long waitWindowTime=150;
 
     /**
-     * 等待弹窗弹出时间
+     * 等待红包领取时间
      */
-    public static long waitGetMoneyTime=600;
+    public static long waitGetMoneyTime=700;
+
+    /**
+     * 当前机型是否需要配置时间，是否能获取到弹窗
+     */
+    public static int needSetTime=-1;
 
     /**
      * 获取屏幕宽高
@@ -121,6 +126,11 @@ public class LuckMoneyService extends BaseAccessbilityService {
      * 计算领取红包的时间
      */
     private static long luckMoneyComingTime;
+
+    /**
+     * 是否在领取详情页
+     */
+    private static boolean inMoneyDetail=false;
 
 
     @Override
@@ -145,6 +155,7 @@ public class LuckMoneyService extends BaseAccessbilityService {
         //当前为红包弹出窗（那个开的那个弹窗）
         if (className.equals(ACTIVITY_DIALOG_LUCKYMONEY)) {
             //进行红包开点击
+            inMoneyDetail=false;
             clickOpen();
             return;
         }
@@ -190,6 +201,7 @@ public class LuckMoneyService extends BaseAccessbilityService {
 
         //红包领取后的详情页面，自动返回
         if (className.equals(LUCKY_MONEY_DETAIL)) {
+            inMoneyDetail=true;
             Log.e(TAG,"领取红包时间为："+(System.currentTimeMillis()-luckMoneyComingTime)+"ms");
             //返回聊天界面
             performGlobalAction(GLOBAL_ACTION_BACK);
@@ -224,24 +236,40 @@ public class LuckMoneyService extends BaseAccessbilityService {
         //获取开字的控件
         AccessibilityNodeInfo target = findViewByID("com.tencent.mm:id/dan");
         if (target != null) {
+            needSetTime=0;
             performViewClick(target);
             Log.e(TAG,"获取到了开按钮");
             return;
         } else {
+            needSetTime=1;
             //如果没有找到按钮，再进行模拟点击
             //此处根据手机性能进行等待弹窗弹出
-            SystemClock.sleep(waitWindowTime);
-            //计算了一下这个開字在屏幕中的位置，按照屏幕比例计算
-            clickOnScreen(screenWidth / 2, screenHeight * POINT_OPEN_Y_SCAL, 1, null);
-            //防止红包已经被领完后无法跳转到下一个界面
-            SystemClock.sleep(waitGetMoneyTime);
-            if(isSingle){
-                //点击取消按钮，返回聊天界面
-                clickOnScreen(screenWidth/2,screenHeight*POINT_CANCEL_Y_SCAL,1,null);
-            }else {
-                //点击详情进入到详情界面，触发返回操作
-                clickOnScreen(screenWidth/2,screenHeight*POINT_DETAIL_Y_SCAL,1,null);
-            }
+            new Thread(()->{
+                long startTime=System.currentTimeMillis();
+                while (System.currentTimeMillis()-startTime<waitWindowTime&&!inMoneyDetail){
+                    //计算了一下这个開字在屏幕中的位置，按照屏幕比例计算
+                    clickOnScreen(screenWidth / 2, screenHeight * POINT_OPEN_Y_SCAL, 1, null);
+                    SystemClock.sleep(10);
+                }
+                if(inMoneyDetail){
+                    Log.e(TAG,"按钮点击完成，已到领取详情页");
+                    return;
+                }
+                //防止红包已经被领完后无法跳转到下一个界面
+                SystemClock.sleep(waitGetMoneyTime);
+                if(inMoneyDetail){
+                    Log.e(TAG,"等待时间后，已到领取详情页");
+                    return;
+                }
+                if(isSingle){
+                    //点击取消按钮，返回聊天界面
+                    clickOnScreen(screenWidth/2,screenHeight*POINT_CANCEL_Y_SCAL,1,null);
+                }else {
+                    //点击详情进入到详情界面，触发返回操作
+                    clickOnScreen(screenWidth/2,screenHeight*POINT_DETAIL_Y_SCAL,1,null);
+                }
+            }).start();
+
         }
     }
 

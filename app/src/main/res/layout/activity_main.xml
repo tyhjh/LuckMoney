@@ -63,6 +63,7 @@
                     android:checked="true" />
 
             </LinearLayout>
+
             <LinearLayout
                 android:layout_marginTop="2dp"
                 android:layout_width="match_parent"
@@ -90,6 +91,81 @@
             </LinearLayout>
 
 
+            <LinearLayout
+                android:id="@+id/ll_device"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:background="@color/white"
+                android:orientation="horizontal"
+                android:padding="20dp">
+
+                <TextView
+                    android:id="@+id/tv_device"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="第一次抢红包会测试手机性能，以确定是否需要开启下面的两项时间功能" />
+
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:gravity="center_vertical"
+                android:id="@+id/ll_wait_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:background="@color/white"
+                android:orientation="horizontal"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_weight="3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="等待红包弹窗时间(少部分机型受网速和性能影响，需要增加时间保证能点击开红包按钮，不会影响实际抢红包速度，其他机型配置此项无效)" />
+
+                <TextView
+                    android:textSize="18sp"
+                    android:textColor="@color/colorPrimary"
+                    android:id="@+id/tv_wait_time"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:gravity="right"
+                    android:text="200ms" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:gravity="center_vertical"
+                android:id="@+id/ll_wait_open_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:background="@color/white"
+                android:orientation="horizontal"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_weight="3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="领取等待时间(少部分机型受网速和性能影响,需要增加时间保证流畅性，不会影响实际抢红包速度，其他机型配置此项无效)" />
+
+                <TextView
+                    android:textSize="18sp"
+                    android:layout_weight="1"
+                    android:textColor="@color/colorPrimary"
+                    android:id="@+id/tv_wait_open_time"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="right"
+                    android:text="500ms" />
+
+            </LinearLayout>
 
 
             <LinearLayout
