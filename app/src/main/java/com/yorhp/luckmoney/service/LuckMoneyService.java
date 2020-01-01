@@ -10,6 +10,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.yorhp.luckmoney.util.ScreenUtil;
+import com.yorhp.luckmoney.util.threadpool.AppExecutors;
 
 /**
  * 抢红包辅助
@@ -104,12 +105,14 @@ public class LuckMoneyService extends BaseAccessbilityService {
     /**
      * 等待弹窗弹出时间
      */
-    public static long waitWindowTime=150;
+    public static int waitWindowTime=150;
+
 
     /**
      * 等待红包领取时间
      */
-    public static long waitGetMoneyTime=700;
+    public static int waitGetMoneyTime=700;
+
 
     /**
      * 当前机型是否需要配置时间，是否能获取到弹窗
@@ -244,7 +247,7 @@ public class LuckMoneyService extends BaseAccessbilityService {
             needSetTime=1;
             //如果没有找到按钮，再进行模拟点击
             //此处根据手机性能进行等待弹窗弹出
-            new Thread(()->{
+            AppExecutors.getInstance().networkIO().execute(()->{
                 long startTime=System.currentTimeMillis();
                 while (System.currentTimeMillis()-startTime<waitWindowTime&&!inMoneyDetail){
                     //计算了一下这个開字在屏幕中的位置，按照屏幕比例计算
@@ -268,8 +271,7 @@ public class LuckMoneyService extends BaseAccessbilityService {
                     //点击详情进入到详情界面，触发返回操作
                     clickOnScreen(screenWidth/2,screenHeight*POINT_DETAIL_Y_SCAL,1,null);
                 }
-            }).start();
-
+            });
         }
     }
 

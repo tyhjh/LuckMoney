@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.yorhp.luckmoney.service.LuckMoneyService;
 import com.yorhp.luckmoney.util.AccessbilityUtil;
 import com.yorhp.luckmoney.util.ScreenUtil;
+import com.yorhp.luckmoney.util.SharedPreferencesUtil;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -29,9 +30,17 @@ public class MainActivity extends AppCompatActivity {
      */
     private static final int MAX_WAIT_WINDOW_TIME=2000;
 
+    /**
+     * 保存状态字段
+     */
+    public static final String NEED_SET_TIME="need_set_time";
+    public static final String WAIT_WINDOW_TIME="waitWindowTime";
+    public static final String WAIT_GET_MONEY_TIME="waitGetMoneyTime";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferencesUtil.init(getApplication());
         setContentView(R.layout.activity_main);
         ScreenUtil.getScreenSize(this);
         ckSingle = findViewById(R.id.ckSingle);
@@ -39,8 +48,10 @@ public class MainActivity extends AppCompatActivity {
         swWx = findViewById(R.id.swWx);
         tvDevice=findViewById(R.id.tv_device);
         tvTime=findViewById(R.id.tv_wait_time);
+        LuckMoneyService.waitWindowTime=SharedPreferencesUtil.getInt(WAIT_WINDOW_TIME,150);
         tvTime.setText(LuckMoneyService.waitWindowTime+"ms");
         tvOpenTime=findViewById(R.id.tv_wait_open_time);
+        LuckMoneyService.waitGetMoneyTime=SharedPreferencesUtil.getInt(WAIT_GET_MONEY_TIME,700);
         tvOpenTime.setText(LuckMoneyService.waitGetMoneyTime+"ms");
         swWx.setOnClickListener((v) -> {
             startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
@@ -91,11 +102,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if(LuckMoneyService.needSetTime==-1){
+            LuckMoneyService.needSetTime=SharedPreferencesUtil.getInt(NEED_SET_TIME,-1);
+        }
         swWx.setChecked(AccessbilityUtil.isAccessibilitySettingsOn(this, LuckMoneyService.class));
         if(LuckMoneyService.needSetTime==1){
             tvDevice.setText("当前设备需要进行下面两项时间设置以达到最佳状态，值的大小不会影响抢红包的速度，值越大越能确保抢到红包，但是值太大返回流程可能会出问题，无法继续抢下一个");
         }else if(LuckMoneyService.needSetTime==0){
             tvDevice.setText("当前设备不需要关心下面两项设置");
         }
+        SharedPreferencesUtil.save(NEED_SET_TIME,LuckMoneyService.needSetTime);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SharedPreferencesUtil.save(WAIT_WINDOW_TIME,LuckMoneyService.waitWindowTime);
+        SharedPreferencesUtil.save(WAIT_GET_MONEY_TIME,LuckMoneyService.waitGetMoneyTime);
     }
 }
