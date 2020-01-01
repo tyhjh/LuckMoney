@@ -89,14 +89,37 @@ public class LuckMoneyService extends BaseAccessbilityService {
     /**
      * 红包的开字在屏幕中的比例
      */
-    private static final float POINT_Y_SCAL = 0.641F;
+    private static final float POINT_OPEN_Y_SCAL = 0.641F;
+
+    /**
+     * 红包弹窗的关闭按钮在屏幕中的比例
+     */
+    private static final float POINT_CANCEL_Y_SCAL=0.81F;
+
+    /**
+     * 红包弹窗中，查看领取详情在屏幕中的比例
+     */
+    private static final float POINT_DETAIL_Y_SCAL=0.705F;
+
+    /**
+     * 等待弹窗弹出时间
+     */
+    public static long waitWindowTime=200;
+
+    /**
+     * 等待弹窗弹出时间
+     */
+    public static long waitGetMoneyTime=600;
 
     /**
      * 获取屏幕宽高
      */
-    int screenWidth = ScreenUtil.SCREEN_WIDTH;
-    int screenHeight = ScreenUtil.SCREEN_HEIGHT;
+    private int screenWidth = ScreenUtil.SCREEN_WIDTH;
+    private int screenHeight = ScreenUtil.SCREEN_HEIGHT;
 
+    /**
+     * 计算领取红包的时间
+     */
     private static long luckMoneyComingTime;
 
 
@@ -123,7 +146,6 @@ public class LuckMoneyService extends BaseAccessbilityService {
         if (className.equals(ACTIVITY_DIALOG_LUCKYMONEY)) {
             //进行红包开点击
             clickOpen();
-            isInChatList=false;
             return;
         }
 
@@ -145,7 +167,6 @@ public class LuckMoneyService extends BaseAccessbilityService {
             Log.e(TAG,"接收到通知栏消息");
             //如果当前界面是在消息列表内，并且单独抢这个群，则不必点击通知消息
             if(!isInChatList||!isSingle){
-                luckMoneyComingTime=System.currentTimeMillis();
                 Notification notification = (Notification) event.getParcelableData();
                 //获取通知消息详情
                 String content = notification.tickerText.toString();
@@ -174,7 +195,7 @@ public class LuckMoneyService extends BaseAccessbilityService {
             performGlobalAction(GLOBAL_ACTION_BACK);
             //如果不是专抢一个群
             if (!isSingle) {
-                SystemClock.sleep(50);
+                SystemClock.sleep(10);
                 performGlobalAction(GLOBAL_ACTION_BACK);
             }
             return;
@@ -189,8 +210,6 @@ public class LuckMoneyService extends BaseAccessbilityService {
             clickHumanItem(nodeInfo);
             return;
         }
-
-
     }
 
     @Override
@@ -202,25 +221,28 @@ public class LuckMoneyService extends BaseAccessbilityService {
      * 点击开红包按钮
      */
     private void clickOpen() {
-        //等待红包弹窗完成，直接使用模拟点击比较快
-        SystemClock.sleep(100);
-        for (int i = 0; i < 20; i++) {
-            SystemClock.sleep(10);
-            //计算了一下这个開字在屏幕中的位置，按照屏幕比例计算
-            clickOnScreen(screenWidth / 2, screenHeight * POINT_Y_SCAL, 1, null);
-        }
-
-        /*AccessibilityNodeInfo target = findViewByID("com.tencent.mm:id/dan");
+        //获取开字的控件
+        AccessibilityNodeInfo target = findViewByID("com.tencent.mm:id/dan");
         if (target != null) {
             performViewClick(target);
+            Log.e(TAG,"获取到了开按钮");
             return;
         } else {
             //如果没有找到按钮，再进行模拟点击
-            for (int i = 0; i < 20; i++) {
-                SystemClock.sleep(10);
-                clickOnScreen(screenWidth / 2, screenHeight * POINT_Y_SCAL, 1, null);
+            //此处根据手机性能进行等待弹窗弹出
+            SystemClock.sleep(waitWindowTime);
+            //计算了一下这个開字在屏幕中的位置，按照屏幕比例计算
+            clickOnScreen(screenWidth / 2, screenHeight * POINT_OPEN_Y_SCAL, 1, null);
+            //防止红包已经被领完后无法跳转到下一个界面
+            SystemClock.sleep(waitGetMoneyTime);
+            if(isSingle){
+                //点击取消按钮，返回聊天界面
+                clickOnScreen(screenWidth/2,screenHeight*POINT_CANCEL_Y_SCAL,1,null);
+            }else {
+                //点击详情进入到详情界面，触发返回操作
+                clickOnScreen(screenWidth/2,screenHeight*POINT_DETAIL_Y_SCAL,1,null);
             }
-        }*/
+        }
     }
 
 
